@@ -1,0 +1,2987 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #219c91;
+            --primary-dark: #1a7d74;
+            --primary-light: #2bbbad;
+            --secondary: #f8f9fa;
+            --text: #333333;
+            --text-light: #666666;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --border: #e0e0e0;
+            --card-bg: #ffffff;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: var(--text);
+            padding-bottom: 20px;
+        }
+
+        /* Header dengan Burger Menu DI KIRI */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 18px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(33, 156, 145, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 64px;
+        }
+
+        /* Burger menu di kiri */
+        .burger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .burger-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Logo di kanan */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Sidebar Menu DI KIRI */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: white;
+            z-index: 201;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+        }
+
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .sidebar-menu {
+            padding: 10px 0;
+        }
+
+        .sidebar-item {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: var(--secondary);
+        }
+
+        .sidebar-item.active {
+            background: rgba(33, 156, 145, 0.1);
+            border-left-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .sidebar-item i {
+            font-size: 20px;
+            width: 24px;
+        }
+
+        .sidebar-item span {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .content {
+            padding: 16px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+            width: 100%;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            padding: 18px 16px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-card:active {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .card-balance .card-icon { color: var(--primary); }
+        .card-income .card-icon { color: var(--success); }
+        .card-expense .card-icon { color: var(--danger); }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .card-amount {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 16px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            min-height: 90px;
+        }
+
+        .action-btn:active {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .action-btn i {
+            font-size: 22px;
+        }
+
+        /* MODERN BUDGET PROGRESS */
+        .budget-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .budget-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .budget-edit-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .budget-edit-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .budget-amounts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .budget-amount-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .budget-amount-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .budget-amount-value {
+            font-size: 20px;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .budget-progress-container {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .budget-progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .budget-progress-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .budget-progress-percentage {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .budget-progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .budget-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .budget-progress-fill.warning {
+            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .budget-progress-fill.danger {
+            background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+        }
+
+        .budget-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .budget-status-text {
+            margin-top: 12px;
+            font-size: 13px;
+            text-align: center;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        /* Recent Transactions */
+        .recent-transactions {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .recent-transactions h3 {
+            padding: 16px;
+            background: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .recent-list {
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--secondary);
+            border-radius: 10px;
+            border-left: 4px solid transparent;
+        }
+
+        .recent-item.income {
+            border-left-color: var(--success);
+        }
+
+        .recent-item.expense {
+            border-left-color: var(--danger);
+        }
+
+        .recent-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .recent-desc {
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+
+        .recent-category {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .recent-amount {
+            font-weight: 700;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .recent-amount.income {
+            color: var(--success);
+        }
+
+        .recent-amount.expense {
+            color: var(--danger);
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            padding: 16px;
+            background: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-btn:active {
+            background: var(--primary-dark);
+            transform: scale(0.95);
+        }
+
+        /* TOMBOL KECIL untuk Reminder */
+        .add-btn-small {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .add-btn-small i {
+            font-size: 11px;
+        }
+
+        .add-btn-small:active {
+            background: var(--primary-dark);
+            transform: scale(0.95);
+        }
+
+        /* Halaman Kelola Kategori */
+        .manage-categories-page {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .manage-categories-header {
+            padding: 20px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .manage-categories-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .manage-categories-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .manage-category-type-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: var(--secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .manage-category-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text);
+        }
+
+        .manage-category-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .manage-category-list {
+            padding: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .manage-category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--secondary);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.2s;
+        }
+
+        .manage-category-item:active {
+            background: #e9ecef;
+        }
+
+        .manage-category-info {
+            flex: 1;
+        }
+
+        .manage-category-name {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .manage-category-type {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .manage-category-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .manage-add-category-section {
+            padding: 16px;
+            background: var(--secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .manage-add-category-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .manage-category-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .manage-category-input {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .manage-category-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .manage-category-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .manage-category-submit:active {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        /* Lists */
+        .item-list {
+            padding: 12px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            margin-bottom: 10px;
+            background: var(--secondary);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .edit-btn:active {
+            background: #e0a800;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+        }
+
+        .delete-btn:active {
+            background: #c82333;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--secondary);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .submit-btn, .cancel-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .submit-btn:active {
+            background: var(--primary-dark);
+        }
+
+        .cancel-btn {
+            background: var(--secondary);
+            color: var(--text);
+        }
+
+        .cancel-btn:active {
+            background: var(--border);
+        }
+
+        /* Notifications */
+        .notification-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 2000;
+            width: calc(100% - 40px);
+            max-width: 400px;
+        }
+
+        .notification {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notification i {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .notification.success i { color: var(--success); }
+        .notification.error i { color: var(--danger); }
+        .notification.warning i { color: var(--warning); }
+        .notification.info i { color: var(--primary); }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 16px;
+        }
+
+        /* Filter Type Buttons */
+        .filter-type-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text);
+        }
+
+        .filter-type-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .content {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header dengan Burger Menu DI KIRI -->
+        <header class="header">
+            <button class="burger-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+            </div>
+        </header>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- Sidebar Menu DI KIRI -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+                <button class="sidebar-close" onclick="closeSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sidebar-menu">
+                <div class="sidebar-item active" onclick="navigateTo('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('transactions')">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transaksi</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('manage-categories')">
+                    <i class="fas fa-cog"></i>
+                    <span>Kelola Kategori</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('savings')">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Tabungan</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('reminders')">
+                    <i class="fas fa-bell"></i>
+                    <span>Pengingat Tagihan</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('reports')">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Laporan</span>
+                </div>
+                <div class="sidebar-item" onclick="navigateTo('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="summary-cards">
+                    <div class="summary-card card-balance">
+                        <div class="card-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="card-label">Saldo</div>
+                        <div class="card-amount" id="dashBalance">Rp 0</div>
+                    </div>
+                    <div class="summary-card card-income">
+                        <div class="card-icon"><i class="fas fa-arrow-down"></i></div>
+                        <div class="card-label">Pemasukan</div>
+                        <div class="card-amount" id="dashIncome">Rp 0</div>
+                    </div>
+                    <div class="summary-card card-expense">
+                        <div class="card-icon"><i class="fas fa-arrow-up"></i></div>
+                        <div class="card-label">Pengeluaran</div>
+                        <div class="card-amount" id="dashExpense">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="openModal('addIncome')">
+                        <i class="fas fa-plus-circle" style="color: var(--success);"></i>
+                        Pemasukan
+                    </button>
+                    <button class="action-btn" onclick="openModal('addExpense')">
+                        <i class="fas fa-minus-circle" style="color: var(--danger);"></i>
+                        Pengeluaran
+                    </button>
+                    <button class="action-btn" onclick="navigateTo('savings')">
+                        <i class="fas fa-piggy-bank" style="color: var(--primary);"></i>
+                        Tabungan
+                    </button>
+                    <button class="action-btn" onclick="navigateTo('reports')">
+                        <i class="fas fa-chart-line" style="color: var(--warning);"></i>
+                        Laporan
+                    </button>
+                </div>
+
+                <!-- Modern Budget Progress -->
+                <div class="budget-section">
+                    <div class="budget-header">
+                        <div class="budget-title">
+                            <i class="fas fa-chart-line"></i>
+                            Budget Bulanan
+                        </div>
+                        <button class="budget-edit-btn" onclick="openModal('setBudget')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                    <div class="budget-amounts">
+                        <div class="budget-amount-item">
+                            <div class="budget-amount-label">Budget</div>
+                            <div class="budget-amount-value" id="budgetTarget">Rp 0</div>
+                        </div>
+                        <div class="budget-amount-item">
+                            <div class="budget-amount-label">Terpakai</div>
+                            <div class="budget-amount-value" id="budgetUsed">Rp 0</div>
+                        </div>
+                    </div>
+                    <div class="budget-progress-container">
+                        <div class="budget-progress-info">
+                            <div class="budget-progress-label">Penggunaan Budget</div>
+                            <div class="budget-progress-percentage" id="budgetPercentage">0%</div>
+                        </div>
+                        <div class="budget-progress-bar">
+                            <div class="budget-progress-fill" id="budgetProgressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="budget-status-text" id="budgetStatusText">Budget belum diatur</div>
+                    </div>
+                </div>
+
+                <div class="recent-transactions">
+                    <h3><i class="fas fa-history"></i> Transaksi Terbaru</h3>
+                    <div class="recent-list" id="recentList">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada transaksi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Page DENGAN FILTER -->
+            <div id="transactions" class="page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-exchange-alt"></i> Transaksi</h2>
+                        <button class="add-btn" onclick="openModal('addTransaction')">
+                            <i class="fas fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                    
+                    <!-- Filter Section -->
+                    <div style="padding: 16px; background: var(--secondary); border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <div style="flex: 1; min-width: 150px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Dari Tanggal</label>
+                                <input type="date" id="filterStartDate" class="form-input" style="padding: 8px; font-size: 13px;">
+                            </div>
+                            <div style="flex: 1; min-width: 150px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Sampai Tanggal</label>
+                                <input type="date" id="filterEndDate" class="form-input" style="padding: 8px; font-size: 13px;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                            <div style="flex: 2; min-width: 200px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Cari Kata Kunci</label>
+                                <input type="text" id="filterKeyword" class="form-input" style="padding: 8px; font-size: 13px;" 
+                                       placeholder="Cari deskripsi atau kategori...">
+                            </div>
+                            <div style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Tampilkan</label>
+                                <select id="itemsPerPage" class="form-select" style="padding: 8px; font-size: 13px;">
+                                    <option value="10">10 item</option>
+                                    <option value="25">25 item</option>
+                                    <option value="50">50 item</option>
+                                    <option value="100">100 item</option>
+                                    <option value="0">Semua</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="add-btn-small" onclick="applyFilters()">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
+                                <button class="cancel-btn" onclick="resetFilters()" style="padding: 6px 12px; font-size: 12px;">
+                                    <i class="fas fa-times"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Tipe -->
+                        <div style="display: flex; gap: 10px; margin-top: 12px;">
+                            <button class="filter-type-btn active" onclick="setTransactionFilterType('all')" data-type="all">
+                                Semua
+                            </button>
+                            <button class="filter-type-btn" onclick="setTransactionFilterType('income')" data-type="income">
+                                <i class="fas fa-arrow-down" style="color: var(--success);"></i> Pemasukan
+                            </button>
+                            <button class="filter-type-btn" onclick="setTransactionFilterType('expense')" data-type="expense">
+                                <i class="fas fa-arrow-up" style="color: var(--danger);"></i> Pengeluaran
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination Info -->
+                    <div id="paginationInfo" style="padding: 12px 16px; background: var(--secondary); 
+                         border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-light);">
+                        Menampilkan 0 dari 0 transaksi
+                    </div>
+                    
+                    <!-- Transaction List -->
+                    <div class="item-list" id="transactionList">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Belum ada transaksi</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div id="paginationControls" style="padding: 16px; text-align: center; display: none;">
+                        <button class="add-btn-small" onclick="prevPage()" id="prevPageBtn" disabled>
+                            <i class="fas fa-chevron-left"></i> Sebelumnya
+                        </button>
+                        <span style="margin: 0 10px; font-size: 13px;" id="currentPageDisplay">Halaman 1</span>
+                        <button class="add-btn-small" onclick="nextPage()" id="nextPageBtn" disabled>
+                            Selanjutnya <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Categories Page -->
+            <div id="manage-categories" class="page">
+                <div class="manage-categories-page">
+                    <div class="manage-categories-header">
+                        <h2>Kelola Kategori</h2>
+                        <p>Edit dan atur kategori pemasukan & pengeluaran Anda</p>
+                    </div>
+                    <div class="manage-category-type-tabs">
+                        <button class="manage-category-tab active" onclick="filterManageCategoriesByType('income')">
+                            <i class="fas fa-arrow-down"></i> Pemasukan
+                        </button>
+                        <button class="manage-category-tab" onclick="filterManageCategoriesByType('expense')">
+                            <i class="fas fa-arrow-up"></i> Pengeluaran
+                        </button>
+                    </div>
+                    <div class="manage-category-list" id="manageCategoryList">
+                        <div class="empty-state">
+                            <i class="fas fa-tags"></i>
+                            <p>Belum ada kategori</p>
+                        </div>
+                    </div>
+                    <div class="manage-add-category-section">
+                        <div class="manage-add-category-title">Tambah Kategori Baru</div>
+                        <div class="manage-category-form">
+                            <input type="text" id="manageNewCategoryName" class="manage-category-input" placeholder="Nama kategori baru...">
+                            <button class="manage-category-submit" onclick="addCategoryFromManagePage()">
+                                <i class="fas fa-plus"></i> Tambah Kategori
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Savings Page DENGAN FITUR TAMBAHAN -->
+            <div id="savings" class="page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-piggy-bank"></i> Tabungan</h2>
+                        <button class="add-btn" onclick="openModal('addSaving')">
+                            <i class="fas fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                    <div class="item-list" id="savingsList">
+                        <div class="empty-state">
+                            <i class="fas fa-piggy-bank"></i>
+                            <p>Belum ada target tabungan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminders Page -->
+            <div id="reminders" class="page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-bell"></i> Pengingat Tagihan</h2>
+                        <button class="add-btn-small" onclick="openModal('addReminder')">
+                            <i class="fas fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                    <div class="item-list" id="remindersList">
+                        <div class="empty-state">
+                            <i class="fas fa-bell"></i>
+                            <p>Belum ada pengingat</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page YANG DIPERBAIKI -->
+            <div id="reports" class="page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-chart-pie"></i> Laporan</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="add-btn-small" onclick="generateMonthlyReport()">
+                                <i class="fas fa-calendar"></i> Bulan Ini
+                            </button>
+                            <button class="add-btn-small" onclick="exportReportData()">
+                                <i class="fas fa-file-excel"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Periode -->
+                    <div style="padding: 16px; background: var(--secondary); border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 150px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Dari Tanggal</label>
+                                <input type="date" id="reportStartDate" class="form-input" style="padding: 8px; font-size: 13px;">
+                            </div>
+                            <div style="flex: 1; min-width: 150px;">
+                                <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: block;">Sampai Tanggal</label>
+                                <input type="date" id="reportEndDate" class="form-input" style="padding: 8px; font-size: 13px;">
+                            </div>
+                            <div style="align-self: flex-end;">
+                                <button class="add-btn-small" onclick="generateReport()">
+                                    <i class="fas fa-filter"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ringkasan Laporan -->
+                    <div class="item-list">
+                        <div id="reportSummary" style="text-align: center; padding: 20px; color: var(--text-light);">
+                            <i class="fas fa-chart-pie" style="font-size: 48px; opacity: 0.5;"></i>
+                            <p>Pilih periode untuk melihat laporan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page DENGAN IMPORT/EXPORT -->
+            <div id="settings" class="page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-cog"></i> Pengaturan</h2>
+                    </div>
+                    <div class="item-list">
+                        <div class="list-item" onclick="openModal('setBudget')">
+                            <div class="item-info">
+                                <div class="item-name">Atur Budget</div>
+                                <div class="item-meta">Tetapkan budget bulanan</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="exportData()">
+                            <div class="item-info">
+                                <div class="item-name">Export Data</div>
+                                <div class="item-meta">Simpan data ke file</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="document.getElementById('importFile').click()">
+                            <div class="item-info">
+                                <div class="item-name">Import Data</div>
+                                <div class="item-meta">Muat data dari file</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="initializeSampleData()">
+                            <div class="item-info">
+                                <div class="item-name">Data Sampel</div>
+                                <div class="item-meta">Tambahkan data contoh</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="resetAllData()">
+                            <div class="item-info">
+                                <div class="item-name">Reset Data</div>
+                                <div class="item-meta">Hapus semua data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Transaction Modal -->
+    <div id="addTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Transaksi</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="transactionForm" onsubmit="submitTransaction(event)">
+                    <div class="form-group">
+                        <label class="form-label">Tipe</label>
+                        <select id="transactionType" class="form-select" required>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kategori</label>
+                        <select id="transactionCategory" class="form-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi</label>
+                        <input type="text" id="transactionDesc" class="form-input" placeholder="Contoh: Gaji bulanan (opsional)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jumlah (Rp)</label>
+                        <input type="number" id="transactionAmount" class="form-input" required min="1" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" id="transactionDate" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Kategori</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm" onsubmit="submitCategory(event)">
+                    <div class="form-group">
+                        <label class="form-label">Nama Kategori</label>
+                        <input type="text" id="categoryName" class="form-input" required placeholder="Contoh: Transportasi">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipe</label>
+                        <select id="categoryType" class="form-select" required>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div id="editCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Kategori</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm" onsubmit="submitEditCategory(event)">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="form-group">
+                        <label class="form-label">Nama Kategori</label>
+                        <input type="text" id="editCategoryName" class="form-input" required placeholder="Nama kategori">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Saving Modal -->
+    <div id="addSavingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Target Tabungan</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="savingForm" onsubmit="submitSaving(event)">
+                    <div class="form-group">
+                        <label class="form-label">Nama Target</label>
+                        <input type="text" id="savingName" class="form-input" required placeholder="Contoh: Liburan">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Jumlah (Rp)</label>
+                        <input type="number" id="savingTarget" class="form-input" required min="1" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jumlah Saat Ini (Rp)</label>
+                        <input type="number" id="savingCurrent" class="form-input" required min="0" value="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Tanggal</label>
+                        <input type="date" id="savingDate" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Reminder Modal -->
+    <div id="addReminderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Pengingat</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reminderForm" onsubmit="submitReminder(event)">
+                    <div class="form-group">
+                        <label class="form-label">Nama Tagihan</label>
+                        <input type="text" id="reminderName" class="form-input" required placeholder="Contoh: Listrik">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jumlah (Rp)</label>
+                        <input type="number" id="reminderAmount" class="form-input" required min="1" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Jatuh Tempo</label>
+                        <input type="date" id="reminderDate" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Budget Modal -->
+    <div id="setBudgetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Atur Budget Bulanan</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="budgetForm" onsubmit="submitBudget(event)">
+                    <div class="form-group">
+                        <label class="form-label">Budget Bulanan (Rp)</label>
+                        <input type="number" id="budgetAmount" class="form-input" required min="0" placeholder="0">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Simpan</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Saving Modal (Dynamic) -->
+    <div id="updateSavingModal" class="modal"></div>
+
+    <!-- Hidden File Input for Import -->
+    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        let transactions = [];
+        let categories = [];
+        let savings = [];
+        let reminders = [];
+        let budget = 0;
+        let currentPageView = 'dashboard';
+        let currentManageCategoryFilter = 'income';
+        
+        // Variabel untuk filter transaksi
+        let currentTransactionPage = 1;
+        let transactionItemsPerPage = 10;
+        let filteredTransactions = [];
+        let currentFilterType = 'all';
+        let filterStartDate = '';
+        let filterEndDate = '';
+        let filterKeyword = '';
+
+        const defaultCategories = [
+            { id: 1, name: 'Gaji', type: 'income' },
+            { id: 2, name: 'Freelance', type: 'income' },
+            { id: 3, name: 'Investasi', type: 'income' },
+            { id: 4, name: 'Bonus', type: 'income' },
+            { id: 5, name: 'Lainnya', type: 'income' },
+            { id: 6, name: 'Belanja', type: 'expense' },
+            { id: 7, name: 'Transportasi', type: 'expense' },
+            { id: 8, name: 'Makanan', type: 'expense' },
+            { id: 9, name: 'Tagihan', type: 'expense' },
+            { id: 10, name: 'Hiburan', type: 'expense' },
+            { id: 11, name: 'Kesehatan', type: 'expense' },
+            { id: 12, name: 'Lainnya', type: 'expense' }
+        ];
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            loadData();
+            updateDashboard();
+            loadCategories();
+            loadRecentTransactions();
+            updateBudgetDisplay();
+            loadTransactions();
+            loadSavings();
+            loadReminders();
+            
+            // Set tanggal default
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('transactionDate')) {
+                document.getElementById('transactionDate').value = today;
+            }
+            
+            // Set tanggal default untuk filter
+            const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 2)
+                .toISOString().split('T')[0];
+            document.getElementById('filterStartDate').value = firstDayOfMonth;
+            document.getElementById('filterEndDate').value = today;
+            document.getElementById('reportStartDate').value = firstDayOfMonth;
+            document.getElementById('reportEndDate').value = today;
+            
+            applyFilters(); // Apply filter default
+        }
+
+        // ==================== SIDEBAR NAVIGATION ====================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            currentPageView = page;
+            closeSidebar();
+            
+            if (page === 'manage-categories') {
+                loadManageCategories();
+            } else if (page === 'transactions') {
+                loadTransactions();
+            } else if (page === 'savings') {
+                loadSavings();
+            } else if (page === 'reminders') {
+                loadReminders();
+            } else if (page === 'reports') {
+                generateMonthlyReport();
+            }
+        }
+
+        // ==================== LOCAL STORAGE ====================
+        function saveData() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('savings', JSON.stringify(savings));
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            localStorage.setItem('budget', budget.toString());
+        }
+
+        function loadData() {
+            const savedTransactions = localStorage.getItem('transactions');
+            const savedCategories = localStorage.getItem('categories');
+            const savedSavings = localStorage.getItem('savings');
+            const savedReminders = localStorage.getItem('reminders');
+            const savedBudget = localStorage.getItem('budget');
+
+            transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
+            categories = savedCategories ? JSON.parse(savedCategories) : [...defaultCategories];
+            savings = savedSavings ? JSON.parse(savedSavings) : [];
+            reminders = savedReminders ? JSON.parse(savedReminders) : [];
+            budget = savedBudget ? parseFloat(savedBudget) : 0;
+        }
+
+        // ==================== DASHBOARD ====================
+        function updateDashboard() {
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalExpense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = totalIncome - totalExpense;
+
+            document.getElementById('dashBalance').textContent = formatCurrency(balance);
+            document.getElementById('dashIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('dashExpense').textContent = formatCurrency(totalExpense);
+        }
+
+        function loadRecentTransactions() {
+            const recentList = document.getElementById('recentList');
+            const recent = transactions.slice(-5).reverse();
+            
+            if (recent.length === 0) {
+                recentList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Belum ada transaksi</p>
+                    </div>
+                `;
+                return;
+            }
+
+            recentList.innerHTML = recent.map(t => `
+                <div class="recent-item ${t.type}">
+                    <div class="recent-info">
+                        <div class="recent-desc">${t.description}</div>
+                        <div class="recent-category">${t.categoryName} • ${formatDate(t.date)}</div>
+                    </div>
+                    <div class="recent-amount ${t.type}">
+                        ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==================== MODERN BUDGET DISPLAY ====================
+        function updateBudgetDisplay() {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthlyExpenses = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return t.type === 'expense' && 
+                       tDate.getMonth() === currentMonth && 
+                       tDate.getFullYear() === currentYear;
+            }).reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('budgetTarget').textContent = formatCurrency(budget);
+            document.getElementById('budgetUsed').textContent = formatCurrency(monthlyExpenses);
+            
+            if (budget > 0) {
+                const percentage = Math.min((monthlyExpenses / budget) * 100, 100);
+                const percentageText = percentage.toFixed(1) + '%';
+                
+                document.getElementById('budgetPercentage').textContent = percentageText;
+                
+                const progressFill = document.getElementById('budgetProgressFill');
+                progressFill.style.width = percentage + '%';
+                
+                progressFill.className = 'budget-progress-fill';
+                if (percentage >= 90) {
+                    progressFill.classList.add('danger');
+                } else if (percentage >= 70) {
+                    progressFill.classList.add('warning');
+                }
+                
+                const remaining = budget - monthlyExpenses;
+                let statusText = '';
+                
+                if (percentage >= 100) {
+                    statusText = '⚠️ Budget terlampaui sebesar ' + formatCurrency(Math.abs(remaining));
+                } else if (percentage >= 90) {
+                    statusText = '🔴 Hampir mencapai limit! Sisa ' + formatCurrency(remaining);
+                } else if (percentage >= 70) {
+                    statusText = '🟡 Hati-hati! Sisa ' + formatCurrency(remaining);
+                } else {
+                    statusText = '✅ Budget masih aman. Sisa ' + formatCurrency(remaining);
+                }
+                
+                document.getElementById('budgetStatusText').textContent = statusText;
+            } else {
+                document.getElementById('budgetPercentage').textContent = '0%';
+                document.getElementById('budgetProgressFill').style.width = '0%';
+                document.getElementById('budgetStatusText').textContent = 'Budget belum diatur';
+            }
+        }
+
+        // ==================== TRANSACTIONS WITH FILTERS ====================
+        function applyFilters() {
+            filterStartDate = document.getElementById('filterStartDate').value;
+            filterEndDate = document.getElementById('filterEndDate').value;
+            filterKeyword = document.getElementById('filterKeyword').value.toLowerCase();
+            transactionItemsPerPage = parseInt(document.getElementById('itemsPerPage').value) || 10;
+            
+            currentTransactionPage = 1;
+            loadTransactions();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterKeyword').value = '';
+            document.getElementById('itemsPerPage').value = '10';
+            
+            filterStartDate = '';
+            filterEndDate = '';
+            filterKeyword = '';
+            transactionItemsPerPage = 10;
+            currentFilterType = 'all';
+            
+            // Reset filter type buttons
+            document.querySelectorAll('.filter-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            currentTransactionPage = 1;
+            loadTransactions();
+        }
+
+        function setTransactionFilterType(type) {
+            currentFilterType = type;
+            
+            // Update button states
+            document.querySelectorAll('.filter-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            currentTransactionPage = 1;
+            loadTransactions();
+        }
+
+        function loadTransactions() {
+            // Apply filters
+            filteredTransactions = transactions.filter(t => {
+                // Filter by type
+                if (currentFilterType !== 'all' && t.type !== currentFilterType) {
+                    return false;
+                }
+                
+                // Filter by date range
+                const transactionDate = new Date(t.date);
+                if (filterStartDate) {
+                    const startDate = new Date(filterStartDate);
+                    if (transactionDate < startDate) return false;
+                }
+                if (filterEndDate) {
+                    const endDate = new Date(filterEndDate);
+                    if (transactionDate > endDate) return false;
+                }
+                
+                // Filter by keyword
+                if (filterKeyword) {
+                    const searchStr = t.description.toLowerCase() + ' ' + t.categoryName.toLowerCase();
+                    if (!searchStr.includes(filterKeyword)) return false;
+                }
+                
+                return true;
+            });
+            
+            // Sort by date (newest first)
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Calculate pagination
+            const totalItems = filteredTransactions.length;
+            const totalPages = transactionItemsPerPage > 0 ? Math.ceil(totalItems / transactionItemsPerPage) : 1;
+            
+            // Get current page items
+            let currentItems = filteredTransactions;
+            if (transactionItemsPerPage > 0) {
+                const startIndex = (currentTransactionPage - 1) * transactionItemsPerPage;
+                currentItems = filteredTransactions.slice(startIndex, startIndex + transactionItemsPerPage);
+            }
+            
+            // Update display
+            const list = document.getElementById('transactionList');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationControls = document.getElementById('paginationControls');
+            const currentPageDisplay = document.getElementById('currentPageDisplay');
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+            
+            if (currentItems.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>Tidak ditemukan transaksi</p>
+                        <button class="add-btn-small" onclick="resetFilters()" style="margin-top: 10px;">
+                            Reset Filter
+                        </button>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = currentItems.map(t => `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">${t.description}</div>
+                            <div class="item-meta">
+                                ${t.categoryName} • ${formatDate(t.date)} • 
+                                <strong style="color: ${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
+                                    ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="delete-btn" onclick="deleteTransaction(${t.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update pagination info
+            paginationInfo.textContent = `Menampilkan ${currentItems.length} dari ${totalItems} transaksi`;
+            
+            // Update pagination controls
+            if (transactionItemsPerPage > 0 && totalPages > 1) {
+                paginationControls.style.display = 'block';
+                currentPageDisplay.textContent = `Halaman ${currentTransactionPage} dari ${totalPages}`;
+                
+                prevPageBtn.disabled = currentTransactionPage === 1;
+                nextPageBtn.disabled = currentTransactionPage === totalPages;
+            } else {
+                paginationControls.style.display = 'none';
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredTransactions.length / transactionItemsPerPage);
+            if (currentTransactionPage < totalPages) {
+                currentTransactionPage++;
+                loadTransactions();
+            }
+        }
+
+        function prevPage() {
+            if (currentTransactionPage > 1) {
+                currentTransactionPage--;
+                loadTransactions();
+            }
+        }
+
+        // ==================== MODALS ====================
+        function openModal(type, id = null) {
+            closeModal();
+            
+            if (type === 'addIncome') {
+                document.getElementById('transactionType').value = 'income';
+                loadCategories();
+                document.getElementById('addTransactionModal').classList.add('active');
+            } else if (type === 'addExpense') {
+                document.getElementById('transactionType').value = 'expense';
+                loadCategories();
+                document.getElementById('addTransactionModal').classList.add('active');
+            } else if (type === 'addTransaction') {
+                loadCategories();
+                document.getElementById('addTransactionModal').classList.add('active');
+            } else if (type === 'addCategory') {
+                document.getElementById('addCategoryModal').classList.add('active');
+            } else if (type === 'editCategory') {
+                const category = categories.find(c => c.id === id);
+                if (category) {
+                    document.getElementById('editCategoryId').value = category.id;
+                    document.getElementById('editCategoryName').value = category.name;
+                    document.getElementById('editCategoryModal').classList.add('active');
+                }
+            } else if (type === 'addSaving') {
+                document.getElementById('addSavingModal').classList.add('active');
+            } else if (type === 'addReminder') {
+                document.getElementById('addReminderModal').classList.add('active');
+            } else if (type === 'setBudget') {
+                document.getElementById('budgetAmount').value = budget;
+                document.getElementById('setBudgetModal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            
+            document.querySelectorAll('form').forEach(form => form.reset());
+            
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('transactionDate')) {
+                document.getElementById('transactionDate').value = today;
+            }
+        }
+
+        function submitTransaction(event) {
+            event.preventDefault();
+            
+            const type = document.getElementById('transactionType').value;
+            const categoryId = parseInt(document.getElementById('transactionCategory').value);
+            const description = document.getElementById('transactionDesc').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const date = document.getElementById('transactionDate').value;
+            
+            const category = categories.find(c => c.id === categoryId);
+            
+            const transaction = {
+                id: Date.now(),
+                type,
+                description,
+                amount,
+                categoryId,
+                categoryName: category.name,
+                date,
+                createdAt: new Date().toISOString()
+            };
+            
+            transactions.push(transaction);
+            
+            saveData();
+            updateDashboard();
+            loadTransactions();
+            loadRecentTransactions();
+            updateBudgetDisplay();
+            closeModal();
+            showNotification('Transaksi berhasil ditambahkan!', 'success');
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('Yakin ingin menghapus transaksi ini?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveData();
+                updateDashboard();
+                loadTransactions();
+                loadRecentTransactions();
+                updateBudgetDisplay();
+                showNotification('Transaksi berhasil dihapus!', 'success');
+            }
+        }
+
+        // ==================== CATEGORIES ====================
+        function loadCategories() {
+            const type = document.getElementById('transactionType')?.value || 'income';
+            const filtered = categories.filter(c => c.type === type);
+            
+            const select = document.getElementById('transactionCategory');
+            if (select) {
+                select.innerHTML = filtered.map(c => 
+                    `<option value="${c.id}">${c.name}</option>`
+                ).join('');
+            }
+        }
+
+        function displayCategories() {
+            const list = document.getElementById('categoryList');
+            
+            if (categories.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tags"></i>
+                        <p>Belum ada kategori</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = categories.map(c => `
+                <div class="list-item">
+                    <div class="item-info">
+                        <div class="item-name">${c.name}</div>
+                        <div class="item-meta">${c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="openModal('editCategory', ${c.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-btn" onclick="deleteCategory(${c.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function submitCategory(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('categoryName').value;
+            const type = document.getElementById('categoryType').value;
+            
+            const category = {
+                id: Date.now(),
+                name,
+                type
+            };
+            
+            categories.push(category);
+            saveData();
+            loadCategories();
+            loadManageCategories();
+            closeModal();
+            showNotification('Kategori berhasil ditambahkan!', 'success');
+        }
+
+        function submitEditCategory(event) {
+            event.preventDefault();
+            
+            const id = parseInt(document.getElementById('editCategoryId').value);
+            const name = document.getElementById('editCategoryName').value;
+            
+            const category = categories.find(c => c.id === id);
+            if (category) {
+                category.name = name;
+                
+                transactions.forEach(t => {
+                    if (t.categoryId === id) {
+                        t.categoryName = name;
+                    }
+                });
+                
+                saveData();
+                loadCategories();
+                displayCategories();
+                loadManageCategories();
+                loadTransactions();
+                closeModal();
+                showNotification('Kategori berhasil diupdate!', 'success');
+            }
+        }
+
+        function deleteCategory(id) {
+            const hasTransactions = transactions.some(t => t.categoryId === id);
+            
+            if (hasTransactions) {
+                showNotification('Tidak bisa menghapus kategori yang masih digunakan!', 'warning');
+                return;
+            }
+            
+            if (confirm('Yakin ingin menghapus kategori ini?')) {
+                categories = categories.filter(c => c.id !== id);
+                saveData();
+                loadCategories();
+                displayCategories();
+                loadManageCategories();
+                showNotification('Kategori berhasil dihapus!', 'success');
+            }
+        }
+
+        // ==================== MANAGE CATEGORIES PAGE ====================
+        function loadManageCategories() {
+            displayManageCategories();
+        }
+
+        function filterManageCategoriesByType(type) {
+            currentManageCategoryFilter = type;
+            document.querySelectorAll('.manage-category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            displayManageCategories();
+        }
+
+        function displayManageCategories() {
+            const list = document.getElementById('manageCategoryList');
+            const filtered = categories.filter(c => c.type === currentManageCategoryFilter);
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tags"></i>
+                        <p>Belum ada kategori</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = filtered.map(c => `
+                <div class="manage-category-item">
+                    <div class="manage-category-info">
+                        <div class="manage-category-name">${c.name}</div>
+                        <div class="manage-category-type">${c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</div>
+                    </div>
+                    <div class="manage-category-actions">
+                        <button class="edit-btn" onclick="openModal('editCategory', ${c.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="delete-btn" onclick="deleteCategory(${c.id})">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addCategoryFromManagePage() {
+            const name = document.getElementById('manageNewCategoryName').value.trim();
+            
+            if (!name) {
+                showNotification('Nama kategori tidak boleh kosong!', 'warning');
+                return;
+            }
+            
+            const category = {
+                id: Date.now(),
+                name,
+                type: currentManageCategoryFilter
+              };
+			
+            categories.push(category);
+            saveData();
+            loadCategories();
+            displayManageCategories();
+            
+            document.getElementById('manageNewCategoryName').value = '';
+            showNotification('Kategori berhasil ditambahkan!', 'success');
+        }
+
+        // ==================== SAVINGS WITH ADDITIONAL FEATURES ====================
+        function loadSavings() {
+            const list = document.getElementById('savingsList');
+            
+            if (savings.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-piggy-bank"></i>
+                        <p>Belum ada target tabungan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = savings.map(s => {
+                const progress = Math.min((s.currentAmount / s.targetAmount) * 100, 100);
+                const daysLeft = Math.ceil((new Date(s.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+                
+                // Progress bar HTML
+                const progressBar = `
+                    <<div style="margin: 8px 0 8px 0; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: ${progress}%;  background: ${progress >= 100 ? 'var(--success)' : 'var(--primary)'}; 
+                             border-radius: 4px; transition: width 0.3s ease;"></div>
+                    </div>
+                `;
+                
+                return `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">${s.name}</div>
+                            <div class="item-meta">
+                                ${formatCurrency(s.currentAmount)} dari ${formatCurrency(s.targetAmount)} (${progress.toFixed(1)}%)
+                                ${progressBar}
+                                Target: ${formatDate(s.targetDate)}
+                                ${daysLeft > 0 ? `(${daysLeft} hari lagi)` : '(Jatuh tempo)'}
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="edit-btn" onclick="openUpdateSavingModal(${s.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteSaving(${s.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openUpdateSavingModal(id) {
+            const saving = savings.find(s => s.id === id);
+            if (!saving) return;
+            
+            // Create modal dynamically
+            const modalHTML = `
+                <div id="updateSavingModal" class="modal active">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Update Tabungan: ${saving.name}</h3>
+                            <button class="modal-close" onclick="closeModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <div style="font-size: 14px; color: var(--text-light); margin-bottom: 8px;">Progress Saat Ini</div>
+                                <div style="font-size: 24px; font-weight: 800; color: var(--primary);">
+                                    ${formatCurrency(saving.currentAmount)} / ${formatCurrency(saving.targetAmount)}
+                                </div>
+                                <div style="margin-top: 8px; font-size: 13px; color: var(--text-light);">
+                                    (${((saving.currentAmount / saving.targetAmount) * 100).toFixed(1)}%)
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Tambah/ Kurang Jumlah (Rp)</label>
+                                <input type="number" id="savingUpdateAmount" class="form-input" 
+                                       placeholder="Masukkan jumlah positif untuk tambah, negatif untuk kurang">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Atau atur jumlah tertentu (Rp)</label>
+                                <input type="number" id="savingSetAmount" class="form-input" 
+                                       value="${saving.currentAmount}" min="0" max="${saving.targetAmount}">
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="submit-btn" onclick="submitSavingUpdate(${id})">
+                                    Update
+                                </button>
+                                <button type="button" class="cancel-btn" onclick="closeModal()">
+                                    Batal
+                                </button>
+                            </div>
+                            
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <button class="action-btn" onclick="updateSavingAmount(${id}, 50000)" 
+                                            style="padding: 10px; font-size: 13px;">
+                                        + Rp 50K
+                                    </button>
+                                    <button class="action-btn" onclick="updateSavingAmount(${id}, 100000)" 
+                                            style="padding: 10px; font-size: 13px;">
+                                        + Rp 100K
+                                    </button>
+                                    <button class="action-btn" onclick="updateSavingAmount(${id}, 500000)" 
+                                            style="padding: 10px; font-size: 13px;">
+                                        + Rp 500K
+                                    </button>
+                                    <button class="action-btn" onclick="updateSavingAmount(${id}, 1000000)" 
+                                            style="padding: 10px; font-size: 13px;">
+                                        + Rp 1JT
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('updateSavingModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function updateSavingAmount(id, amountChange) {
+            const saving = savings.find(s => s.id === id);
+            if (saving) {
+                saving.currentAmount += amountChange;
+                if (saving.currentAmount < 0) saving.currentAmount = 0;
+                if (saving.currentAmount > saving.targetAmount) saving.currentAmount = saving.targetAmount;
+                
+                saveData();
+                loadSavings();
+                
+                const action = amountChange > 0 ? 'ditambah' : 'dikurangi';
+                showNotification(`Tabungan "${saving.name}" berhasil ${action} ${formatCurrency(Math.abs(amountChange))}`, 'success');
+                
+                // Close modal if open
+                const modal = document.getElementById('updateSavingModal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+        }
+
+        function submitSavingUpdate(id) {
+            const updateAmount = document.getElementById('savingUpdateAmount').value;
+            const setAmount = document.getElementById('savingSetAmount').value;
+            
+            const saving = savings.find(s => s.id === id);
+            if (!saving) return;
+            
+            if (updateAmount) {
+                const amountChange = parseFloat(updateAmount);
+                updateSavingAmount(id, amountChange);
+            } else if (setAmount) {
+                saving.currentAmount = parseFloat(setAmount);
+                if (saving.currentAmount < 0) saving.currentAmount = 0;
+                if (saving.currentAmount > saving.targetAmount) saving.currentAmount = saving.targetAmount;
+                
+                saveData();
+                loadSavings();
+                showNotification(`Tabungan "${saving.name}" diatur menjadi ${formatCurrency(saving.currentAmount)}`, 'success');
+            }
+            
+            closeModal();
+        }
+
+        function submitSaving(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('savingName').value;
+            const targetAmount = parseFloat(document.getElementById('savingTarget').value);
+            const currentAmount = parseFloat(document.getElementById('savingCurrent').value);
+            const targetDate = document.getElementById('savingDate').value;
+            
+            const saving = {
+                id: Date.now(),
+                name,
+                targetAmount,
+                currentAmount,
+                targetDate,
+                createdAt: new Date().toISOString()
+            };
+            
+            savings.push(saving);
+            saveData();
+            loadSavings();
+            closeModal();
+            showNotification('Target tabungan berhasil ditambahkan!', 'success');
+        }
+
+        function deleteSaving(id) {
+            if (confirm('Yakin ingin menghapus target tabungan ini?')) {
+                savings = savings.filter(s => s.id !== id);
+                saveData();
+                loadSavings();
+                showNotification('Target tabungan berhasil dihapus!', 'success');
+            }
+        }
+
+        // ==================== REMINDERS ====================
+        function loadReminders() {
+            const list = document.getElementById('remindersList');
+            
+            if (reminders.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-bell"></i>
+                        <p>Belum ada pengingat</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = reminders.map(r => {
+                const daysLeft = Math.ceil((new Date(r.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">${r.name}</div>
+                            <div class="item-meta">
+                                ${formatCurrency(r.amount)} • 
+                                ${formatDate(r.dueDate)} 
+                                ${daysLeft > 0 ? `(${daysLeft} hari lagi)` : daysLeft === 0 ? '(Hari ini)' : '(Terlambat)'}
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="delete-btn" onclick="deleteReminder(${r.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function submitReminder(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('reminderName').value;
+            const amount = parseFloat(document.getElementById('reminderAmount').value);
+            const dueDate = document.getElementById('reminderDate').value;
+            
+            const reminder = {
+                id: Date.now(),
+                name,
+                amount,
+                dueDate,
+                createdAt: new Date().toISOString()
+            };
+            
+            reminders.push(reminder);
+            saveData();
+            loadReminders();
+            closeModal();
+            showNotification('Pengingat berhasil ditambahkan!', 'success');
+        }
+
+        function deleteReminder(id) {
+            if (confirm('Yakin ingin menghapus pengingat ini?')) {
+                reminders = reminders.filter(r => r.id !== id);
+                saveData();
+                loadReminders();
+                showNotification('Pengingat berhasil dihapus!', 'success');
+            }
+        }
+
+        // ==================== BUDGET ====================
+        function submitBudget(event) {
+            event.preventDefault();
+            
+            budget = parseFloat(document.getElementById('budgetAmount').value);
+            saveData();
+            updateBudgetDisplay();
+            closeModal();
+            showNotification('Budget berhasil diatur!', 'success');
+        }
+
+        // ==================== REPORTS ====================
+        function generateMonthlyReport() {
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            document.getElementById('reportStartDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('reportEndDate').value = endDate.toISOString().split('T')[0];
+            
+            generateReport();
+        }
+
+        function generateReport() {
+            const startDateStr = document.getElementById('reportStartDate').value;
+            const endDateStr = document.getElementById('reportEndDate').value;
+            
+            if (!startDateStr || !endDateStr) {
+                showNotification('Harap pilih periode tanggal', 'warning');
+                return;
+            }
+            
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            
+            // Filter transaksi dalam periode
+            const periodTransactions = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= startDate && tDate <= endDate;
+            });
+            
+            // Hitung ringkasan
+            const income = periodTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expense = periodTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = income - expense;
+            
+            // Kelompokkan berdasarkan kategori
+            const incomeByCategory = {};
+            const expenseByCategory = {};
+            
+            periodTransactions.forEach(t => {
+                if (t.type === 'income') {
+                    incomeByCategory[t.categoryName] = (incomeByCategory[t.categoryName] || 0) + t.amount;
+                } else {
+                    expenseByCategory[t.categoryName] = (expenseByCategory[t.categoryName] || 0) + t.amount;
+                }
+            });
+            
+            // Generate HTML report
+            const reportHTML = `
+                <div style="padding: 16px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: var(--text); margin-bottom: 8px;">Laporan ${formatDate(startDateStr)} - ${formatDate(endDateStr)}</h3>
+                        <p style="color: var(--text-light); font-size: 13px;">Total ${periodTransactions.length} transaksi</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                        <div style="background: rgba(40, 167, 69, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">PEMASUKAN</div>
+                            <div style="font-size: 16px; font-weight: 800; color: var(--success);">${formatCurrency(income)}</div>
+                        </div>
+                        <div style="background: rgba(220, 53, 69, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">PENGELUARAN</div>
+                            <div style="font-size: 16px; font-weight: 800; color: var(--danger);">${formatCurrency(expense)}</div>
+                        </div>
+                        <div style="background: ${balance >= 0 ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'}; 
+                             padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-light); margin-bottom: 4px;">SALDO</div>
+                            <div style="font-size: 16px; font-weight: 800; color: ${balance >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                ${formatCurrency(balance)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <!-- Pemasukan by Kategori -->
+                        <div>
+                            <h4 style="color: var(--text); margin-bottom: 12px; font-size: 14px;">
+                                <i class="fas fa-arrow-down" style="color: var(--success);"></i> Pemasukan per Kategori
+                            </h4>
+                            ${Object.entries(incomeByCategory).length > 0 ? 
+                                Object.entries(incomeByCategory)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([category, amount]) => `
+                                        <div style="display: flex; justify-content: space-between; 
+                                             align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                            <span style="font-size: 13px;">${category}</span>
+                                            <span style="font-weight: 600; color: var(--success); font-size: 13px;">
+                                                ${formatCurrency(amount)}
+                                            </span>
+                                        </div>
+                                    `).join('') : 
+                                '<div style="text-align: center; padding: 20px; color: var(--text-light); font-size: 13px;">Tidak ada data</div>'
+                            }
+                        </div>
+                        
+                        <!-- Pengeluaran by Kategori -->
+                        <div>
+                            <h4 style="color: var(--text); margin-bottom: 12px; font-size: 14px;">
+                                <i class="fas fa-arrow-up" style="color: var(--danger);"></i> Pengeluaran per Kategori
+                            </h4>
+                            ${Object.entries(expenseByCategory).length > 0 ? 
+                                Object.entries(expenseByCategory)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([category, amount]) => `
+                                        <div style="display: flex; justify-content: space-between; 
+                                             align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                            <span style="font-size: 13px;">${category}</span>
+                                            <span style="font-weight: 600; color: var(--danger); font-size: 13px;">
+                                                ${formatCurrency(amount)}
+                                            </span>
+                                        </div>
+                                    `).join('') : 
+                                '<div style="text-align: center; padding: 20px; color: var(--text-light); font-size: 13px;">Tidak ada data</div>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- 10 Transaksi Terbesar -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: var(--text); margin-bottom: 12px; font-size: 14px;">
+                            <i class="fas fa-star"></i> 10 Transaksi Terbesar
+                        </h4>
+                        ${periodTransactions
+                            .sort((a, b) => b.amount - a.amount)
+                            .slice(0, 10)
+                            .map(t => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; 
+                                     padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                    <div style="font-size: 13px;">
+                                        <div>${t.description}</div>
+                                        <div style="font-size: 11px; color: var(--text-light);">
+                                            ${t.categoryName} • ${formatDate(t.date)}
+                                        </div>
+                                    </div>
+                                    <div style="font-weight: 600; color: ${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}; 
+                                         font-size: 13px;">
+                                        ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('reportSummary').innerHTML = reportHTML;
+        }
+
+        function exportReportData() {
+            const startDateStr = document.getElementById('reportStartDate').value;
+            const endDateStr = document.getElementById('reportEndDate').value;
+            
+            if (!startDateStr || !endDateStr) {
+                showNotification('Harap pilih periode tanggal terlebih dahulu', 'warning');
+                return;
+            }
+            
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            
+            // Filter transaksi dalam periode
+            const periodTransactions = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= startDate && tDate <= endDate;
+            });
+            
+            if (periodTransactions.length === 0) {
+                showNotification('Tidak ada data transaksi pada periode tersebut', 'warning');
+                return;
+            }
+            
+            // Prepare data for export
+            const exportData = {
+                periode: `${formatDate(startDateStr)} - ${formatDate(endDateStr)}`,
+                totalTransaksi: periodTransactions.length,
+                pemasukan: periodTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0),
+                pengeluaran: periodTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0),
+                saldo: periodTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - 
+                       periodTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0),
+                transaksi: periodTransactions
+            };
+            
+            // Convert to JSON
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create download link
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `laporan_keuangan_${startDateStr}_${endDateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Laporan berhasil diexport!', 'success');
+        }
+
+        // ==================== IMPORT/EXPORT DATA ====================
+        function exportData() {
+            const exportData = {
+                app: "Money Manager",
+                exportDate: new Date().toISOString(),
+                transactions: transactions,
+                categories: categories.filter(c => !defaultCategories.some(dc => dc.id === c.id)), // Hanya kategori custom
+                savings: savings,
+                reminders: reminders,
+                budget: budget
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `money_manager_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data berhasil diexport!', 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('Import data akan mengganti semua data yang ada. Lanjutkan?')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validasi data
+                    if (!importedData.transactions || !importedData.categories) {
+                        throw new Error('Format file tidak valid');
+                    }
+                    
+                    // Replace semua data
+                    transactions = importedData.transactions || [];
+                    categories = [...defaultCategories, ...(importedData.categories || [])];
+                    savings = importedData.savings || [];
+                    reminders = importedData.reminders || [];
+                    budget = importedData.budget || 0;
+                    
+                    saveData();
+                    updateDashboard();
+                    loadTransactions();
+                    loadRecentTransactions();
+                    updateBudgetDisplay();
+                    loadSavings();
+                    loadReminders();
+                    displayCategories();
+                    loadManageCategories();
+                    
+                    showNotification('Data berhasil diimport!', 'success');
+                    
+                    // Reset file input
+                    event.target.value = '';
+                    
+                } catch (error) {
+                    showNotification('Gagal import data: ' + error.message, 'error');
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== RESET DATA ====================
+        function resetAllData() {
+            if (!confirm('Yakin ingin reset semua data? Tindakan ini tidak dapat dibatalkan!')) {
+                return;
+            }
+            
+            if (confirm('Semua transaksi, kategori (kecuali default), dan budget akan dihapus. Lanjutkan?')) {
+                transactions = [];
+                budget = 0;
+                savings = [];
+                categories = [...defaultCategories];
+                reminders = [];
+                
+                saveData();
+                updateDashboard();
+                loadCategories();
+                loadTransactions();
+                loadRecentTransactions();
+                updateBudgetDisplay();
+                loadSavings();
+                loadReminders();
+                displayCategories();
+                loadManageCategories();
+                
+                showNotification('Semua data telah direset!', 'success');
+            }
+        }
+
+        // ==================== SAMPLE DATA ====================
+        function initializeSampleData() {
+            const sampleTransactions = [
+                {
+                    id: 1,
+                    type: 'income',
+                    description: 'Gaji Bulanan',
+                    amount: 7500000,
+                    categoryId: 1,
+                    categoryName: 'Gaji',
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    type: 'expense',
+                    description: 'Belanja Bulanan',
+                    amount: 2500000,
+                    categoryId: 6,
+                    categoryName: 'Belanja',
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 3,
+                    type: 'expense',
+                    description: 'Bayar Listrik',
+                    amount: 500000,
+                    categoryId: 9,
+                    categoryName: 'Tagihan',
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 4,
+                    type: 'income',
+                    description: 'Bonus Projek',
+                    amount: 2000000,
+                    categoryId: 4,
+                    categoryName: 'Bonus',
+                    date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            
+            const sampleSavings = [
+                {
+                    id: 1,
+                    name: 'Tabungan Liburan',
+                    targetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 3, 1).toISOString().split('T')[0],
+                    targetAmount: 3000000,
+                    currentAmount: 1200000,
+                    createdAt: new Date().toISOString()
+                }
+            ];
+
+            const sampleReminders = [
+                {
+                    id: 1,
+                    name: 'Tagihan Listrik',
+                    amount: 500000,
+                    dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            
+            transactions = sampleTransactions;
+            budget = 5000000;
+            savings = sampleSavings;
+            reminders = sampleReminders;
+            categories = [...defaultCategories];
+            
+            saveData();
+            updateDashboard();
+            loadCategories();
+            loadTransactions();
+            loadRecentTransactions();
+            updateBudgetDisplay();
+            loadSavings();
+            loadReminders();
+            displayCategories();
+            loadManageCategories();
+            
+            showNotification('Data sampel telah ditambahkan!', 'info');
+        }
+
+        // ==================== NOTIFICATIONS ====================
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification ' + type;
+            notification.innerHTML = `
+                <i class="fas fa-${icons[type] || 'info-circle'}"></i>
+                <div class="notification-content">
+                    <div class="notification-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function formatCurrency(amount) {
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('id-ID', options);
+        }
+
+        // ==================== AUTO-SAVE ====================
+        window.addEventListener('beforeunload', function() {
+            saveData();
+        });
+
+        // ==================== INITIALIZATION ====================
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
