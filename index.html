@@ -1732,6 +1732,15 @@
 
         // ==================== DASHBOARD ====================
         function updateDashboard() {
+            const dashBalance = document.getElementById('dashBalance');
+            const dashIncome = document.getElementById('dashIncome');
+            const dashExpense = document.getElementById('dashExpense');
+            
+            // Hanya update jika elemen ada (berarti di halaman Dashboard)
+            if (!dashBalance || !dashIncome || !dashExpense) {
+                return;
+            }
+            
             const totalIncome = transactions
                 .filter(t => t.type === 'income')
                 .reduce((sum, t) => sum + t.amount, 0);
@@ -1742,13 +1751,19 @@
             
             const balance = totalIncome - totalExpense;
 
-            document.getElementById('dashBalance').textContent = formatCurrency(balance);
-            document.getElementById('dashIncome').textContent = formatCurrency(totalIncome);
-            document.getElementById('dashExpense').textContent = formatCurrency(totalExpense);
+            dashBalance.textContent = formatCurrency(balance);
+            dashIncome.textContent = formatCurrency(totalIncome);
+            dashExpense.textContent = formatCurrency(totalExpense);
         }
 
         function loadRecentTransactions() {
             const recentList = document.getElementById('recentList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Dashboard)
+            if (!recentList) {
+                return;
+            }
+            
             const recent = transactions.slice(-5).reverse();
             
             if (recent.length === 0) {
@@ -1776,6 +1791,17 @@
 
         // ==================== MODERN BUDGET DISPLAY ====================
         function updateBudgetDisplay() {
+            const budgetTarget = document.getElementById('budgetTarget');
+            const budgetUsed = document.getElementById('budgetUsed');
+            const budgetPercentage = document.getElementById('budgetPercentage');
+            const budgetProgressFill = document.getElementById('budgetProgressFill');
+            const budgetStatusText = document.getElementById('budgetStatusText');
+            
+            // Hanya update jika semua elemen ada (berarti di halaman Dashboard)
+            if (!budgetTarget || !budgetUsed || !budgetPercentage || !budgetProgressFill || !budgetStatusText) {
+                return;
+            }
+            
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
             
@@ -1786,23 +1812,22 @@
                        tDate.getFullYear() === currentYear;
             }).reduce((sum, t) => sum + t.amount, 0);
 
-            document.getElementById('budgetTarget').textContent = formatCurrency(budget);
-            document.getElementById('budgetUsed').textContent = formatCurrency(monthlyExpenses);
+            budgetTarget.textContent = formatCurrency(budget);
+            budgetUsed.textContent = formatCurrency(monthlyExpenses);
             
             if (budget > 0) {
                 const percentage = Math.min((monthlyExpenses / budget) * 100, 100);
                 const percentageText = percentage.toFixed(1) + '%';
                 
-                document.getElementById('budgetPercentage').textContent = percentageText;
+                budgetPercentage.textContent = percentageText;
                 
-                const progressFill = document.getElementById('budgetProgressFill');
-                progressFill.style.width = percentage + '%';
+                budgetProgressFill.style.width = percentage + '%';
                 
-                progressFill.className = 'budget-progress-fill';
+                budgetProgressFill.className = 'budget-progress-fill';
                 if (percentage >= 90) {
-                    progressFill.classList.add('danger');
+                    budgetProgressFill.classList.add('danger');
                 } else if (percentage >= 70) {
-                    progressFill.classList.add('warning');
+                    budgetProgressFill.classList.add('warning');
                 }
                 
                 const remaining = budget - monthlyExpenses;
@@ -1818,11 +1843,11 @@
                     statusText = '✅ Budget masih aman. Sisa ' + formatCurrency(remaining);
                 }
                 
-                document.getElementById('budgetStatusText').textContent = statusText;
+                budgetStatusText.textContent = statusText;
             } else {
-                document.getElementById('budgetPercentage').textContent = '0%';
-                document.getElementById('budgetProgressFill').style.width = '0%';
-                document.getElementById('budgetStatusText').textContent = 'Budget belum diatur';
+                budgetPercentage.textContent = '0%';
+                budgetProgressFill.style.width = '0%';
+                budgetStatusText.textContent = 'Budget belum diatur';
             }
         }
 
@@ -1877,6 +1902,13 @@
         }
 
         function loadTransactions() {
+            const list = document.getElementById('transactionList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Transaksi)
+            if (!list) {
+                return;
+            }
+            
             // Apply filters
             filteredTransactions = transactions.filter(t => {
                 // Filter by type
@@ -1919,7 +1951,6 @@
             }
             
             // Update display
-            const list = document.getElementById('transactionList');
             const paginationInfo = document.getElementById('paginationInfo');
             const paginationControls = document.getElementById('paginationControls');
             const currentPageDisplay = document.getElementById('currentPageDisplay');
@@ -1957,18 +1988,22 @@
                 `).join('');
             }
             
-            // Update pagination info
-            paginationInfo.textContent = `Menampilkan ${currentItems.length} dari ${totalItems} transaksi`;
+            // Update pagination info (with null check)
+            if (paginationInfo) {
+                paginationInfo.textContent = `Menampilkan ${currentItems.length} dari ${totalItems} transaksi`;
+            }
             
-            // Update pagination controls
-            if (transactionItemsPerPage > 0 && totalPages > 1) {
-                paginationControls.style.display = 'block';
-                currentPageDisplay.textContent = `Halaman ${currentTransactionPage} dari ${totalPages}`;
-                
-                prevPageBtn.disabled = currentTransactionPage === 1;
-                nextPageBtn.disabled = currentTransactionPage === totalPages;
-            } else {
-                paginationControls.style.display = 'none';
+            // Update pagination controls (with null check)
+            if (paginationControls && currentPageDisplay && prevPageBtn && nextPageBtn) {
+                if (transactionItemsPerPage > 0 && totalPages > 1) {
+                    paginationControls.style.display = 'block';
+                    currentPageDisplay.textContent = `Halaman ${currentTransactionPage} dari ${totalPages}`;
+                    
+                    prevPageBtn.disabled = currentTransactionPage === 1;
+                    nextPageBtn.disabled = currentTransactionPage === totalPages;
+                } else {
+                    paginationControls.style.display = 'none';
+                }
             }
         }
 
@@ -2081,19 +2116,29 @@
 
         // ==================== CATEGORIES ====================
         function loadCategories() {
-            const type = document.getElementById('transactionType')?.value || 'income';
+            const typeElement = document.getElementById('transactionType');
+            const select = document.getElementById('transactionCategory');
+            
+            // Hanya load jika kedua elemen ada (berarti modal transaksi sedang terbuka)
+            if (!typeElement || !select) {
+                return;
+            }
+            
+            const type = typeElement.value || 'income';
             const filtered = categories.filter(c => c.type === type);
             
-            const select = document.getElementById('transactionCategory');
-            if (select) {
-                select.innerHTML = filtered.map(c => 
-                    `<option value="${c.id}">${c.name}</option>`
-                ).join('');
-            }
+            select.innerHTML = filtered.map(c => 
+                `<option value="${c.id}">${c.name}</option>`
+            ).join('');
         }
 
         function displayCategories() {
             const list = document.getElementById('categoryList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Kategori)
+            if (!list) {
+                return;
+            }
             
             if (categories.length === 0) {
                 list.innerHTML = `
@@ -2137,7 +2182,7 @@
             
             categories.push(category);
             saveData();
-            loadCategories();
+            displayCategories();
             loadManageCategories();
             closeModal();
             showNotification('Kategori berhasil ditambahkan!', 'success');
@@ -2160,7 +2205,6 @@
                 });
                 
                 saveData();
-                loadCategories();
                 displayCategories();
                 loadManageCategories();
                 loadTransactions();
@@ -2180,7 +2224,6 @@
             if (confirm('Yakin ingin menghapus kategori ini?')) {
                 categories = categories.filter(c => c.id !== id);
                 saveData();
-                loadCategories();
                 displayCategories();
                 loadManageCategories();
                 showNotification('Kategori berhasil dihapus!', 'success');
@@ -2203,6 +2246,12 @@
 
         function displayManageCategories() {
             const list = document.getElementById('manageCategoryList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Kelola Kategori)
+            if (!list) {
+                return;
+            }
+            
             const filtered = categories.filter(c => c.type === currentManageCategoryFilter);
             
             if (filtered.length === 0) {
@@ -2249,7 +2298,7 @@
 			
             categories.push(category);
             saveData();
-            loadCategories();
+            displayCategories();
             displayManageCategories();
             
             document.getElementById('manageNewCategoryName').value = '';
@@ -2259,6 +2308,11 @@
         // ==================== SAVINGS WITH ADDITIONAL FEATURES ====================
         function loadSavings() {
             const list = document.getElementById('savingsList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Tabungan)
+            if (!list) {
+                return;
+            }
             
             if (savings.length === 0) {
                 list.innerHTML = `
@@ -2463,6 +2517,11 @@
         // ==================== REMINDERS ====================
         function loadReminders() {
             const list = document.getElementById('remindersList');
+            
+            // Hanya render jika elemen ada (berarti di halaman Pengingat)
+            if (!list) {
+                return;
+            }
             
             if (reminders.length === 0) {
                 list.innerHTML = `
@@ -2833,7 +2892,6 @@
                 
                 saveData();
                 updateDashboard();
-                loadCategories();
                 loadTransactions();
                 loadRecentTransactions();
                 updateBudgetDisplay();
@@ -2920,7 +2978,6 @@
             
             saveData();
             updateDashboard();
-            loadCategories();
             loadTransactions();
             loadRecentTransactions();
             updateBudgetDisplay();
