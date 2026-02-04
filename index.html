@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS Library untuk Export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1671,7 +1673,13 @@
                         <div class="list-item" onclick="exportData()">
                             <div class="item-info">
                                 <div class="item-name">Export Data</div>
-                                <div class="item-meta">Simpan data ke file</div>
+                                <div class="item-meta">Simpan data ke file JSON</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="exportToExcel()">
+                            <div class="item-info">
+                                <div class="item-name">Export Excel</div>
+                                <div class="item-meta">Simpan transaksi ke file Excel</div>
                             </div>
                         </div>
                         <div class="list-item" onclick="document.getElementById('importFile').click()">
@@ -3142,6 +3150,89 @@
             URL.revokeObjectURL(url);
             
             showNotification('Data berhasil diexport!', 'success');
+        }
+
+        function exportToExcel() {
+            if (transactions.length === 0) {
+                showNotification('Tidak ada data transaksi untuk diexport!', 'warning');
+                return;
+            }
+
+            // Prepare data for Excel - Sheet Transaksi
+            const excelData = transactions.map(transaction => ({
+                'Tanggal': transaction.date,
+                'Deskripsi': transaction.description,
+                'Kategori': transaction.categoryName,
+                'Tipe': transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+                'Jumlah': transaction.amount
+            }));
+
+            // Sort by date (newest first)
+            excelData.sort((a, b) => new Date(b.Tanggal) - new Date(a.Tanggal));
+
+            // Create worksheet for transactions
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 12 },  // Tanggal
+                { wch: 30 },  // Deskripsi
+                { wch: 20 },  // Kategori
+                { wch: 15 },  // Tipe
+                { wch: 18 }   // Jumlah
+            ];
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Transaksi');
+
+            // Add summary sheet
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            transactions.forEach(transaction => {
+                const transactionDate = new Date(transaction.date);
+                if (transactionDate.getMonth() === currentMonth && 
+                    transactionDate.getFullYear() === currentYear) {
+                    if (transaction.type === 'income') {
+                        totalIncome += transaction.amount;
+                    } else {
+                        totalExpense += transaction.amount;
+                    }
+                }
+            });
+
+            const balance = totalIncome - totalExpense;
+
+            const summaryData = [
+                { 'Keterangan': 'Total Pemasukan (Bulan Ini)', 'Jumlah': totalIncome },
+                { 'Keterangan': 'Total Pengeluaran (Bulan Ini)', 'Jumlah': totalExpense },
+                { 'Keterangan': 'Saldo', 'Jumlah': balance },
+                { 'Keterangan': '', 'Jumlah': '' },
+                { 'Keterangan': 'Budget Bulanan', 'Jumlah': budget },
+                { 'Keterangan': 'Total Transaksi', 'Jumlah': transactions.length },
+                { 'Keterangan': 'Tanggal Export', 'Jumlah': new Date().toLocaleDateString('id-ID') }
+            ];
+
+            const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 35 },  // Keterangan
+                { wch: 20 }   // Jumlah
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+
+            // Generate filename
+            const filename = `transaksi_keuangan_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+
+            showNotification('Data berhasil diexport ke Excel!', 'success');
         }
 
         function importData(event) {
